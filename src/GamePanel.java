@@ -14,18 +14,21 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 	Font titleFont;
 	Font normalFont;
 	Rocketship ship;
+	ObjectManager manager;
 	final int MENU_STATE = 0;
 	final int GAME_STATE = 1;
 	final int END_STATE = 2;
 	int currentState;
 
 	public GamePanel() {
+		
+		
 		timer = new Timer(1000 / 60, this);
 		currentState = MENU_STATE;
 		titleFont = new Font("Arial",Font.PLAIN,48);
 		normalFont = new Font("Arial",Font.PLAIN, 26);
 		ship = new Rocketship(250,700,50,50);
-
+		manager = new ObjectManager(ship);
 	}
 
 	public void startGame() {
@@ -66,7 +69,13 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 	}
 
 	public void updateGameState() {
-		
+		manager.update();
+		manager.manageEnemies();
+		manager.purgeObjects();
+		manager.checkCollision();
+		if(ship.isAlive == false) {
+			currentState = END_STATE;
+		}
 	}
 
 	public void updateEndState() {
@@ -88,7 +97,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 	public void drawGameState(Graphics g) {
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, LeagueInvaders.width, LeagueInvaders.height);
-		ship.draw(g);
+		manager.draw(g);
 	}
 
 	public void drawEndState(Graphics g) {
@@ -97,22 +106,30 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 		g.setColor(Color.BLACK);
 		g.setFont(titleFont);
 		g.drawString("GAME OVER", 60, 200);
+		g.drawString("" + manager.getScore(), 60, 400);
 	}
+	
+
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		System.out.println("key typed");
+		
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		System.out.println("key pressed");
+		
 		if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+			
+			System.out.println("swapping");
 			if(currentState == END_STATE) {
 				currentState = MENU_STATE;
+				ship = new Rocketship(250,700,50,50);
+				manager = new ObjectManager(ship);
 			} else {
 				currentState++;
 			}
+			
 		} else if(e.getKeyCode() == KeyEvent.VK_UP) {
 			ship.y -= ship.speed;
 		} else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
@@ -124,12 +141,15 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 		else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
 			ship.x += ship.speed;
 		} 
+		else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+			manager.addProjectile(new Projectile(ship.x + (ship.width)/2,ship.y,10,10));
+		}
 
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		System.out.println("key released");
+		
 
 	}
 }
